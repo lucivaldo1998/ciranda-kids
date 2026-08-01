@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { prisma } from "./prisma";
+import { defaultSettings } from "./settings";
 import { PG_DDL } from "./db-ddl";
 import { DEMO_CATEGORIES, DEMO_PRODUCTS, DEMO_SIZES, ACCESSORY_CATEGORY } from "./seed-data";
 
@@ -16,11 +17,12 @@ export async function ensureSchema(databaseUrl: string) {
   }
 }
 
-export async function seedDefaults() {
+export async function seedDefaults(forceSettings = false) {
+  const { id: _id, ...settingDefaults } = defaultSettings;
   await prisma.setting.upsert({
     where: { id: "singleton" },
-    update: {},
-    create: { id: "singleton" },
+    update: forceSettings ? settingDefaults : {},
+    create: { id: "singleton", ...settingDefaults },
   });
 
   for (const gatewayId of ["mercadopago", "stripe", "cielo"]) {

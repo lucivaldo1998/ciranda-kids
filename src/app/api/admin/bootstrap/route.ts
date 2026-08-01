@@ -24,7 +24,8 @@ async function handle(request: NextRequest) {
 
   try {
     await ensureSchema(databaseUrl);
-    const seeded = await seedDefaults();
+    const forcar = request.nextUrl.searchParams.get("forcar") === "1";
+    const seeded = await seedDefaults(forcar);
     return NextResponse.json({
       ok: true,
       mensagem: "Banco pronto! Tabelas criadas/conferidas e dados iniciais no lugar.",

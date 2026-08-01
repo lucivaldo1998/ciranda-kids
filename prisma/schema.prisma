@@ -13,8 +13,8 @@ datasource db {
 // ---------- Configurações gerais (singleton) ----------
 model Setting {
   id                     String   @id @default("singleton")
-  brandName              String   @default("ALVA")
-  tagline                String   @default("Vestir o natural")
+  brandName              String   @default("CIRANDA")
+  tagline                String   @default("Moda infantil feita com carinho")
   whatsapp               String   @default("5592999999999")
   email                  String?
   phone                  String?
@@ -22,15 +22,15 @@ model Setting {
   address                String?
   cnpj                   String?
   announcement           String?  // barra de aviso no topo do site
-  primaryColor           String   @default("#3E4A3D")
-  accentColor            String   @default("#B26E4B")
-  backgroundColor        String   @default("#F7F3EC")
+  primaryColor           String   @default("#2A6F63")
+  accentColor            String   @default("#F2803B")
+  backgroundColor        String   @default("#FFF7EC")
   logoUrl                String?
   seoTitle               String?
   seoDescription         String?
   // Frete simples: valor fixo + frete grátis acima de X (0 = desativado)
-  shippingFlatCents      Int      @default(2500)
-  freeShippingAboveCents Int      @default(40000)
+  shippingFlatCents      Int      @default(1800)
+  freeShippingAboveCents Int      @default(30000)
   shippingNote           String?  @default("Prazo de produção e envio combinados via WhatsApp após a compra.")
   // IA para croquis do Ateliê (opcional) — chave OpenAI cifrada
   openaiKeyCiphertext    String?
