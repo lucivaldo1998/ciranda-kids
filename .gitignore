@@ -1,0 +1,17 @@
+node_modules/
+.next/
+src/generated/
+*.tsbuildinfo
+next-env.d.ts
+
+# banco local e segredos
+prisma/dev.db
+prisma/dev.db-journal
+.env
+.env*.local
+
+# uploads enviados pelo painel (mantém a pasta, ignora o conteúdo)
+public/uploads/*
+!public/uploads/demo/
+
+.DS_Store

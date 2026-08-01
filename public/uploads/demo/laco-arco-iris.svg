@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#ffe3c9"/>
+      <stop offset="1" stop-color="#ffc59e"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#g)"/>
+  <circle cx="110" cy="130" r="42" fill="#ffffff55"/>
+  <circle cx="500" cy="620" r="64" fill="#ffffff40"/>
+  <circle cx="480" cy="180" r="26" fill="#ffffff4d"/>
+  <rect x="40" y="40" width="520" height="720" rx="28" fill="none" stroke="#00000022" stroke-width="1.5"/>
+  <text x="300" y="410" text-anchor="middle" font-family="Verdana, sans-serif" font-size="30" font-weight="bold" letter-spacing="3" fill="#4a3a30">LAÇO ARCO-ÍRIS</text>
+  <text x="300" y="450" text-anchor="middle" font-family="Verdana, sans-serif" font-size="12" letter-spacing="3" fill="#4a3a3099">CIRANDA · FOTO ILUSTRATIVA</text>
+</svg>

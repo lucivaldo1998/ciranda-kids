@@ -1,0 +1,190 @@
+// ALVA — Ateliê de roupas 100% naturais (linho, seda, algodão)
+// Dev: SQLite. Produção: troque provider para "postgresql" e rode `prisma migrate deploy`.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Configurações gerais (singleton) ----------
+model Setting {
+  id                     String   @id @default("singleton")
+  brandName              String   @default("ALVA")
+  tagline                String   @default("Vestir o natural")
+  whatsapp               String   @default("5592999999999")
+  email                  String?
+  phone                  String?
+  instagram              String?
+  address                String?
+  cnpj                   String?
+  announcement           String?  // barra de aviso no topo do site
+  primaryColor           String   @default("#3E4A3D")
+  accentColor            String   @default("#B26E4B")
+  backgroundColor        String   @default("#F7F3EC")
+  logoUrl                String?
+  seoTitle               String?
+  seoDescription         String?
+  // Frete simples: valor fixo + frete grátis acima de X (0 = desativado)
+  shippingFlatCents      Int      @default(2500)
+  freeShippingAboveCents Int      @default(40000)
+  shippingNote           String?  @default("Prazo de produção e envio combinados via WhatsApp após a compra.")
+  // IA para croquis do Ateliê (opcional) — chave OpenAI cifrada
+  openaiKeyCiphertext    String?
+  openaiKeyIv            String?
+  openaiKeyTag           String?
+  updatedAt              DateTime @updatedAt
+}
+
+// ---------- Gateways de pagamento ----------
+// id: "mercadopago" | "stripe" | "cielo"
+model PaymentGateway {
+  id                      String   @id
+  active                  Boolean  @default(false)
+  testMode                Boolean  @default(true)
+  // Campo público (não sensível): MP public key / Stripe publishable key / Cielo MerchantId
+  publicKey               String?
+  // Segredo cifrado (AES-256-GCM): MP access token / Stripe secret key / Cielo MerchantKey
+  secretCiphertext        String?
+  secretIv                String?
+  secretTag               String?
+  // Stripe: signing secret do webhook (whsec_...), também cifrado
+  webhookSecretCiphertext String?
+  webhookSecretIv         String?
+  webhookSecretTag        String?
+  updatedAt               DateTime @updatedAt
+}
+
+// ---------- Catálogo ----------
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  sortOrder Int       @default(0)
+  products  Product[]
+}
+
+model Product {
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  name             String
+  description      String           @default("")
+  fabric           String           @default("linho") // linho | seda | algodao
+  priceCents       Int
+  compareAtCents   Int?
+  active           Boolean          @default(true)
+  featured         Boolean          @default(false)
+  allowCustomOrder Boolean          @default(true) // pode servir de base para o Ateliê sob medida
+  categoryId       String?
+  category         Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images           ProductImage[]
+  variants         ProductVariant[]
+  orderItems       OrderItem[]
+  customOrders     CustomOrder[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String  @default("")
+  sortOrder Int     @default(0)
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String // PP, P, M, G, GG…
+  color     String  @default("")
+  stock     Int     @default(0)
+  sortOrder Int     @default(0)
+}
+
+// ---------- Pedidos (loja) ----------
+model Order {
+  id              Int         @id @default(autoincrement())
+  publicCode      String      @unique // token da URL pública do pedido
+  status          String      @default("aguardando_pagamento")
+  // aguardando_pagamento | pago | em_preparo | enviado | entregue | cancelado
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  customerCpf     String?
+  shipCep         String
+  shipStreet      String
+  shipNumber      String
+  shipComplement  String?
+  shipDistrict    String
+  shipCity        String
+  shipState       String
+  subtotalCents   Int
+  shippingCents   Int
+  totalCents      Int
+  paymentProvider String? // mercadopago | stripe | cielo
+  paymentMethod   String? // pix | card | redirect
+  paymentRef      String? // id externo do pagamento/sessão
+  pixQrCode       String? // copia-e-cola
+  pixQrCodeB64    String? // imagem base64 do QR
+  checkoutUrl     String? // redirect (MP init_point / Stripe session url)
+  customOrderId   String?     @unique // se este pedido paga uma encomenda do Ateliê
+  customOrder     CustomOrder? @relation(fields: [customOrderId], references: [id])
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String // snapshot no momento da compra
+  size      String  @default("")
+  color     String  @default("")
+  unitCents Int
+  qty       Int
+  imageUrl  String?
+}
+
+// ---------- Ateliê sob medida ----------
+model CustomOrder {
+  id                String   @id @default(cuid())
+  code              String   @unique // ex.: ATL-2043
+  status            String   @default("nova")
+  // nova | em_analise | orcamento_enviado | aprovada | em_producao | finalizada | entregue | cancelada
+  type              String // modelo (peça do catálogo) | referencia (foto enviada) | ia (croqui gerado)
+  baseProductId     String?
+  baseProduct       Product? @relation(fields: [baseProductId], references: [id], onDelete: SetNull)
+  referenceImageUrl String? // foto de referência (ex.: look de celebridade)
+  aiPrompt          String?
+  aiImageUrl        String? // croqui gerado por IA
+  fabric            String?
+  colorNotes        String?
+  details           String? // descrição livre do cliente
+  measurementsJson  String   @default("{}") // medidas em JSON
+  customerName      String
+  customerEmail     String
+  customerPhone     String
+  customerCity      String?
+  quoteCents        Int? // orçamento definido pela Cleide
+  quoteNotes        String? // observações do orçamento (prazo, condições)
+  adminNotes        String? // anotações internas
+  order             Order?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ---------- Conteúdo editável do site ----------
+model ContentBlock {
+  key       String   @id // "home" | "sobre" | "atelie" | ...
+  json      String // payload JSON editado pelo painel
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Identidade CIRANDA — sobrescrita em runtime pelo painel (Configurações → Identidade visual) */
+:root {
+  --brand-primary: #2a6f63; /* verde-esmeralda */
+  --brand-accent: #f2803b; /* laranja alegre */
+  --brand-canvas: #fff7ec; /* creme quente */
+  --brand-ink: #40342b; /* marrom-cacau */
+  --font-display-src: "Baloo 2", "Comic Sans MS", "Segoe UI", sans-serif;
+  --font-body-src: "Nunito", "Segoe UI", "Verdana", sans-serif;
+}
+
+@theme inline {
+  --color-primary: var(--brand-primary);
+  --color-accent: var(--brand-accent);
+  --color-canvas: var(--brand-canvas);
+  --color-ink: var(--brand-ink);
+  --font-display: var(--font-display-src);
+  --font-body: var(--font-body-src);
+}
+
+body {
+  background: var(--brand-canvas);
+  color: var(--brand-ink);
+  font-family: var(--font-body-src), sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: var(--brand-accent);
+  color: white;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
